@@ -15,36 +15,18 @@ Content-Type: application/json
     "department_id": 1
 }
 
-### Login with email
-# @name login
-POST {{baseUrl}}/login
-Content-Type: application/json
-
-{
-    "username": "john@example.com",
-    "password": "password123"
-}
-
-### Login with username
-POST {{baseUrl}}/login
-Content-Type: application/json
-
-{
-    "username": "johndoe",
-    "password": "password123"
-}
-
 ### Get authenticated user
 GET {{baseUrl}}/user
 Authorization: Bearer {{token}}
 
 ### Login with superadmin credentials
+# @name login
 POST {{baseUrl}}/login
 Content-Type: application/json
 
 {
-    "username": "superadmin",
-    "password": "password"
+    "login": "superadmin",
+    "password": "654321"
 }
 
 ### Login with regular user credentials
@@ -53,10 +35,17 @@ Content-Type: application/json
 
 {
     "username": "user",
-    "password": "password"
+    "password": "654321"
 }
 
 ### Logout user
 POST {{baseUrl}}/logout
 Authorization: Bearer {{token}}
+
+### Get authenticated user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+
+
 

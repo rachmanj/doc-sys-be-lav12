@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -34,6 +35,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
+            'success' => true,
             'message' => 'User registered successfully',
             'user' => $user,
             'token' => $token
@@ -45,32 +47,34 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
-
-        $loginField = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        
-        $credentials = [
-            $loginField => $request->username,
-            'password' => $request->password
-        ];
-
-        if (!Auth::attempt($credentials)) {
-            throw ValidationException::withMessages([
-                'username' => ['The provided credentials are incorrect.'],
+        try {
+            $request->validate([
+                'login' => 'required|string',
+                'password' => 'required|string',
             ]);
+
+            $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+            
+            $user = User::with(['department', 'roles.permissions'])->where($loginField, $request->login)->first();
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'login' => ['The provided credentials are incorrect.'],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'user' => new UserResource($user),
+                'token' => $user->createToken('auth_token')->plainTextToken
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        $user = $request->user();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Logged in successfully',
-            'user' => $user,
-            'token' => $token
-        ]);
     }
 
     /**
@@ -81,7 +85,16 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
+            'success' => true,
             'message' => 'Successfully logged out'
+        ]);
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'user' => new UserResource($request->user()->load(['roles.permissions', 'department']))
         ]);
     }
 }
