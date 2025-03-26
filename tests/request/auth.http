@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:8000/api
+@token = {{login.response.body.token}}
+
+### Register a new user
+# @name register
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "password": "password123",
+    "project": "DOC-SYS",
+    "department_id": 1
+}
+
+### Login with email
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "username": "john@example.com",
+    "password": "password123"
+}
+
+### Login with username
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "username": "johndoe",
+    "password": "password123"
+}
+
+### Get authenticated user
+GET {{baseUrl}}/user
+Authorization: Bearer {{token}}
+
+### Login with superadmin credentials
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "username": "superadmin",
+    "password": "password"
+}
+
+### Login with regular user credentials
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "username": "user",
+    "password": "password"
+}
+
+### Logout user
+POST {{baseUrl}}/logout
+Authorization: Bearer {{token}}
+
